@@ -1,0 +1,23 @@
+{
+    "name": "todoist",
+    "version": "0.1.0",
+    "description": "",
+    "main": "build/index.js",
+    "dependencies": {
+        "@types/uuid": "^3.4.5",
+        "cross-fetch": "^3.0.4",
+        "dotenv": "^8.2.0",
+        "rest-api-handler": "^2.1.0",
+        "uuid": "^3.3.3"
+    },
+    "devDependencies": {
+        "@socifi/eslint-config": "^2.10.0"
+    },
+    "scripts": {
+        "lint": "eslint ./src --ext ts",
+        "tsc": "tsc",
+        "develop": "tsc --watch"
+    },
+    "author": "",
+    "license": "ISC"
+}

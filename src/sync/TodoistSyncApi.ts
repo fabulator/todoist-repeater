@@ -27,7 +27,7 @@ export default class SyncApi extends Api {
     }
 
     async sync<R extends Resource>(resources: R[]): Promise<SyncResponseBase & Pick<SyncResponseResources, R>> {
-        const { data } = await this.post('', {
+        const { data } = await this.post('sync', {
             token: this.token,
             sync_token: this.syncToken,
             resource_types: resources,

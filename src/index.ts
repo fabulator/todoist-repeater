@@ -57,28 +57,55 @@ const api = new TodoistSyncApi(process.env.ACCESS_TOKEN, process.env.COOKIE);
 
 console.log('Starting');
 
+const rutineId = 2151244383;
+const templateId = 2154002014;
+
 queue.process(async (job: Queue.Job<HookBody>, done: any) => {
     console.log(job);
     const { data } = job;
 
-    if (data.event_name !== 'item:completed' || !data.event_data.due) {
+    if (data.event_name !== 'item:completed' || !data.event_data.labels.includes(rutineId)) {
         done();
         return;
     }
 
-    const response = await api.get(`archive/items?parent_id=${data.event_data.id}`);
+    const { items } = await api.sync(['items']);
 
-    const subtasks = response.data.items;
+    const childTask = items.filter((item) => item.parent_id === data.event_data.id);
 
-    if (subtasks.length > 0) {
-        await api.command(subtasks.map(({ id }: any) => {
+    const template = items.find((item) => item.content === data.event_data.content && item.labels.includes(templateId));
+
+    if (!template) {
+        console.log(`Error, cannot find the template ${data.event_data.content}.`);
+        return;
+    }
+
+    const newTasks = items
+        .filter((item) => item.parent_id === template.id)
+        .map((item) => {
             return {
-                type: 'item_uncomplete',
+                ...item,
+                parent_id: data.event_data.id,
+            };
+        });
+
+    await api.command([
+        ...childTask.map(({ id }) => {
+            return {
+                type: 'item_delete',
                 uuid: uuidv1(),
                 args: { id },
             };
-        }));
-    }
+        }),
+        ...newTasks.map((task) => {
+            return {
+                type: 'item_add',
+                uuid: uuidv1(),
+                temp_id: uuidv1(),
+                args: task,
+            };
+        }),
+    ]);
 
     done();
 });
